@@ -28,11 +28,26 @@
 #</Copyright Header>
 
 
-ASM=yasm
-ASMFLAGS=-f elf64
+ASM=nasm
+ASMFLAGS=-felf64
 
-CFLAGS= -g -nostdlib -nostartfiles -nodefaultlibs -I ./include -fno-builtin -s -static
-LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib
+CFLAGS= -m64 \
+	-mcmodel=kernel \
+	-mno-red-zone \
+	-nostdlib \
+	-nostartfiles \
+	-nodefaultlibs \
+	-I ./include \
+	-fno-builtin \
+	-mno-mmx \
+	-mno-sse \
+	-mno-sse2 \
+	-mno-sse3 \
+	-mno-3dnow \
+	-ffreestanding \
+
+
+LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib -lgcc -nodefaultlibs
 
 HDRS=
 
@@ -78,8 +93,8 @@ ${ASM_OBJS}: ${*:objs/%=src/%}.asm
 ${C_OBJS}: ${HDRS} ${*:objs/%=src/%}.c
 	${CC} ${CFLAGS} -c ${*:objs/%=src/%}.c -o $*.o
 
-${OUTFILE}: ramdisk ${ASM_OBJS} ${C_OBJS} src/linker.ld
-	${CC} ${LDFLAGS} -T src/linker.ld -o ${OUTFILE} ${ASM_OBJS} $(C_OBJS) objs/tfs.o
+${OUTFILE}: ${ASM_OBJS} ${C_OBJS} src/linker.ld
+	${CC} ${LDFLAGS} -T src/linker.ld -o ${OUTFILE} ${ASM_OBJS} $(C_OBJS)
 
 ${DONEKERNEL}: ${OUTFILE}
 	gzip -9 ${OUTFILE} -c > ${DONEKERNEL}
