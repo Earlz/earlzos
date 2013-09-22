@@ -44,10 +44,13 @@ CFLAGS= -m64 \
 	-mno-sse2 \
 	-mno-sse3 \
 	-mno-3dnow \
-	-ffreestanding \
+	-ffreestanding 
 
 
-LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib -lgcc -nodefaultlibs
+
+LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib -nodefaultlibs \
+	-z max-page-size=0x1000 -s -static
+
 
 HDRS=
 
@@ -68,16 +71,18 @@ BINDIR:=bin
 
 default: ${DONEKERNEL}
 
+rebuild: clean install-boot install
 
 install-boot:
 	gujin ${BOOTDEV}
 
 install: ${DONEKERNEL}
-	rm -r mnt
+	rm -rf mnt
 	mkdir mnt
 	mount ${BOOTDEV} ./mnt
 	cp ${DONEKERNEL} ./mnt/
-	umount ./mnt
+	sync
+	umount ${BOOTDEV}
 
 #user_:
 #	cd user/ && make

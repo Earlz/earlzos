@@ -14,3 +14,21 @@ List of dependencies
 
 
 Got started from here: http://wiki.osdev.org/64-bit_Higher_Half_Kernel_with_GRUB_2
+
+
+# Building
+
+Special notes about building(for me): Use something like this:
+
+    bmake CC=x86_64-elf-gcc
+    sudo bmake install BOOTDEV=/dev/sdd
+
+Sometimes my makefile is stupid and you have to clean and rebuild. 
+
+
+# Other
+
+btw, the GCC option `-s` means this:
+
+       -s  Remove all symbol table and relocation information from the
+           executable.
