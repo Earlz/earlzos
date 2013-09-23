@@ -1,5 +1,5 @@
 
-
+#include <kernel/gdt.h>
 
  const char msg1[] = "Hello long-mode text world! please reboot ..."; 
  
