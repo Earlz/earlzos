@@ -89,20 +89,24 @@ void kscroll(){
         
 }
 
+//from http://www.jb.man.ac.uk/~slowe/cpp/itoa.html
+
+/**
+ * Ansi C "itoa" based on Kernighan & Ritchie's "Ansi C"
+ * with slight modification to optimize for specific architecture:
+ */
+//assumes that buffer is 32 bytes. returns pointer for use with kputs     
+char* kitoa(uint64_t val, char* buf, int base){
+    memset(buf, 0, 32);
+    int i = 30;
+    for(; val && i ; --i, val /= base)
+            buf[i] = "0123456789abcdef"[val % base];
+    
+    return &buf[i+1];
+}
+        
 
 void kput_hex(uint64_t dat){
-     char *hex_digits="0123456789ABCDEF";
-     unsigned int i=7; //7
-     char tmp[2]={'\0',0};
-     while(((dat&(0xF<<(i*8)))>>(i*8))==0){
-         if(i==0){break;}
-         i--;
-     }
-     for(i=i;i>0;i--){
-          tmp[0]=hex_digits[(dat&(0xF<<(i*8)))>>(i*8)];
-          kputs(tmp);
-          if(i==0){break;}
-     }
-     tmp[0]=hex_digits[(dat&(0xF))];
-     kputs(tmp);
+    char tmp[32];
+    kputs(kitoa(dat, tmp, 16));
 }
