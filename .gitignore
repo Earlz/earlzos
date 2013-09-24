@@ -19,4 +19,5 @@
 *.elf
 *.kgz
 *.kate-swp
+build-newlib/
 
