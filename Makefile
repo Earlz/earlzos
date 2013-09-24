@@ -38,7 +38,6 @@ CFLAGS= -m64 \
 	-nostartfiles \
 	-nodefaultlibs \
 	-I ./include \
-	-fno-builtin \
 	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
@@ -49,7 +48,7 @@ CFLAGS= -m64 \
 
 
 LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib -nodefaultlibs \
-	-z max-page-size=0x1000 -s -static
+	-z max-page-size=0x1000 -s -static -lgcc
 
 
 HDRS=
