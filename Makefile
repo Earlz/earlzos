@@ -43,17 +43,19 @@ CFLAGS= -m64 \
 	-mno-sse2 \
 	-mno-sse3 \
 	-mno-3dnow \
-	-ffreestanding 
+	-ffreestanding \
+	-I ./compiled-newlib/x86_64-elf/include \
+	-Wall
 
 
 
 LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib -nodefaultlibs \
-	-z max-page-size=0x1000 -s -static -lgcc
+	-z max-page-size=0x1000 -s -static 
 
 
 HDRS=
 
-C_SRCS=src/kernel/main.c
+C_SRCS=src/kernel/main.c src/kernel/kstdio.c
  
 C_OBJS=$(C_SRCS:src/%.c=objs/%.o)
 
@@ -98,7 +100,7 @@ ${C_OBJS}: ${HDRS} ${*:objs/%=src/%}.c
 	${CC} ${CFLAGS} -c ${*:objs/%=src/%}.c -o $*.o
 
 ${OUTFILE}: ${ASM_OBJS} ${C_OBJS} src/linker.ld
-	${CC} ${LDFLAGS} -T src/linker.ld -o ${OUTFILE} ${ASM_OBJS} $(C_OBJS)
+	${CC} ${LDFLAGS} -T src/linker.ld -o ${OUTFILE} ${ASM_OBJS} $(C_OBJS) ./compiled-newlib/x86_64-elf/lib/libc.a ./compiled-newlib/x86_64-elf/lib/libnosys.a
 
 ${DONEKERNEL}: ${OUTFILE}
 	gzip -9 ${OUTFILE} -c > ${DONEKERNEL}

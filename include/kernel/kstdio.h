@@ -1,11 +1,14 @@
 #ifndef KSTDIO_H
 #define KSTDIO_H
+#include <stdint.h>
 
+void kputs(char* s);
+void kputc(char c);
 
-int kputs(char* s);
-int kputc(char c);
-
-int kputs_xy(char* s, int x, int y);
+void kputs_xy(char* s, int x, int y);
+void kput_hex(uint64_t num);
+void kscroll();
+void kcls();
 
 #include <kernel/x86.h>
 #define PANIC(x) kd_set_color(0xCF); \

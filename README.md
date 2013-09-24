@@ -11,6 +11,8 @@ List of dependencies
 * 64bit and 32bit freestanding GCC compilers
 * BSD make (specifically NetBSD.. may eventually change to GNU)
 * Assumes a unix-y environement
+* newlib -- A very easy to compile libc, used only for OS independent actions at the moment(memcpy, strcmp, etc)
+
 
 
 Got started from here: http://wiki.osdev.org/64-bit_Higher_Half_Kernel_with_GRUB_2
