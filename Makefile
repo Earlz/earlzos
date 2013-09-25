@@ -28,7 +28,7 @@
 #</Copyright Header>
 
 
-ASM=nasm
+ASM=yasm
 ASMFLAGS=-felf64
 
 CFLAGS= -m64 \
@@ -55,11 +55,11 @@ LDFLAGS:= -nostartfiles -nodefaultlibs -nostdlib -nodefaultlibs \
 
 HDRS=
 
-C_SRCS=src/kernel/main.c src/kernel/kstdio.c
+C_SRCS=src/kernel/main.c src/kernel/kstdio.c src/kernel/gdt.c
  
 C_OBJS=$(C_SRCS:src/%.c=objs/%.o)
 
-ASM_SRCS=src/kernel/glue.asm 
+ASM_SRCS=src/kernel/assemblyglue.asm src/kernel/boot.asm
 ASM_OBJS=$(ASM_SRCS:src/%.asm=objs/%.o)
 
 OUTFILE=bin/kernel.elf

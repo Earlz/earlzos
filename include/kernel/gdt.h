@@ -35,56 +35,51 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GDT_H
 #include <stdint.h>
 
-struct gdt_entry
-{
-        unsigned short limit_low;
-        unsigned short base_low;
-        unsigned char base_middle;
-        unsigned char access;
-        unsigned char granularity; //has limit in tss
-        unsigned char base_high;
-} __attribute__((packed));
-
-
-
-struct gdt_entry_bits
-{
-        unsigned int limit_low:16;
-        unsigned int base_low : 24;
-     //attribute byte split into bitfields
-        unsigned int accessed :1;
-        unsigned int read_write :1; //readable for code, writable for data
-        unsigned int conforming_expand_down :1; //conforming for code, expand down for data
-        unsigned int code :1; //1 for code, 0 for data
-        unsigned int always_1 :1; //should be 1 for everything but TSS and LDT
-        unsigned int DPL :2; //priveledge level
-        unsigned int present :1;
-     //and now into granularity
-        unsigned int limit_high :4;
-        unsigned int available :1;
-        unsigned int longmode :1; //64bit segment
-        unsigned int big :1; //32bit opcodes for code, dword stack for data
-        unsigned int gran :1; //1 to use 4k page addressing, 0 for byte addressing
-        unsigned int base_high :8;
-} __attribute__((packed));
-
-/**
-g->limit_low=limit&0xFFFF; //isolate bottom 16 bits
-g->base_low=base&0xFFFFFF; //isolate bottom 24 bits
-g->accessed=1; //This indicates it's a TSS and not a LDT. This is a changed meaning
-g->read_write=0; //This indicates if the TSS is busy or not. 0 for not busy
-g->conforming_expand_down=0; //always 0 for TSS
-g->code=1; //For TSS this is 1 for 32bit usage, or 0 for 16bit.
-g->always_1=0; //indicate it is a TSS
-g->DPL=3; //same meaning
-g->present=1; //same meaning
-g->limit_high=(limit&0xF0000)>>16; //isolate top nibble
-g->available=0;
-g->always_0=0; //same thing
-g->big=0; //should leave zero according to manuals. No effect
-g->gran=0; //so that our computed GDT limit is in bytes, not pages
-g->base_high=(base&0xFF000000)>>24; //isolate top byte.
-**/
+ 
+// Each define here is for a specific flag in the descriptor.
+// Refer to the intel documentation for a description of what each one does.
+#define SEG_DESCTYPE(x)  ((x) << 0x04) // Descriptor type (0 for system, 1 for code/data)
+#define SEG_PRES(x)      ((x) << 0x07) // Present
+#define SEG_SAVL(x)      ((x) << 0x0C) // Available for system use
+#define SEG_LONG(x)      ((x) << 0x0D) // Long mode
+#define SEG_SIZE(x)      ((x) << 0x0E) // Size (0 for 16-bit, 1 for 32)
+#define SEG_GRAN(x)      ((x) << 0x0F) // Granularity (0 for 1B - 1MB, 1 for 4KB - 4GB)
+#define SEG_PRIV(x)     (((x) &  0x03) << 0x05)   // Set privilege level (0 - 3)
+ 
+#define SEG_DATA_RD        0x00 // Read-Only
+#define SEG_DATA_RDA       0x01 // Read-Only, accessed
+#define SEG_DATA_RDWR      0x02 // Read/Write
+#define SEG_DATA_RDWRA     0x03 // Read/Write, accessed
+#define SEG_DATA_RDEXPD    0x04 // Read-Only, expand-down
+#define SEG_DATA_RDEXPDA   0x05 // Read-Only, expand-down, accessed
+#define SEG_DATA_RDWREXPD  0x06 // Read/Write, expand-down
+#define SEG_DATA_RDWREXPDA 0x07 // Read/Write, expand-down, accessed
+#define SEG_CODE_EX        0x08 // Execute-Only
+#define SEG_CODE_EXA       0x09 // Execute-Only, accessed
+#define SEG_CODE_EXRD      0x0A // Execute/Read
+#define SEG_CODE_EXRDA     0x0B // Execute/Read, accessed
+#define SEG_CODE_EXC       0x0C // Execute-Only, conforming
+#define SEG_CODE_EXCA      0x0D // Execute-Only, conforming, accessed
+#define SEG_CODE_EXRDC     0x0E // Execute/Read, conforming
+#define SEG_CODE_EXRDCA    0x0F // Execute/Read, conforming, accessed
+ 
+#define GDT_CODE_PL0 SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_SAVL(0) | \
+                     SEG_LONG(1)     | SEG_SIZE(0) | SEG_GRAN(1) | \
+                     SEG_PRIV(0)     | SEG_CODE_EXRD
+ 
+#define GDT_DATA_PL0 SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_SAVL(0) | \
+                     SEG_LONG(1)     | SEG_SIZE(0) | SEG_GRAN(1) | \
+                     SEG_PRIV(0)     | SEG_DATA_RDWR
+ 
+#define GDT_CODE_PL3 SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_SAVL(0) | \
+                     SEG_LONG(1)     | SEG_SIZE(1) | SEG_GRAN(1) | \
+                     SEG_PRIV(3)     | SEG_CODE_EXRD
+ 
+#define GDT_DATA_PL3 SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_SAVL(0) | \
+                     SEG_LONG(1)     | SEG_SIZE(1) | SEG_GRAN(1) | \
+                     SEG_PRIV(3)     | SEG_DATA_RDWR
+ 
+uint64_t create_descriptor(uint32_t base, uint32_t limit, uint16_t flag);
 
 
 // A struct describing a Task State Segment.
@@ -127,7 +122,7 @@ extern tss_entry_t tss_entry;
 *  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
 struct gdt_ptr {
         unsigned short limit;
-        unsigned int base;
+        uintptr_t base;
 } __attribute__((packed));
 
 /* Our GDT, with 3 entries, and finally our special GDT pointer */
@@ -135,15 +130,15 @@ struct gdt_ptr {
 #define GDT_LIMIT 10
 
 
-extern struct gdt_entry gdt[GDT_LIMIT];
+extern uint64_t gdt[GDT_LIMIT];
 extern struct gdt_ptr gp;
 extern void gdt_flush(); //asm function
 
-void GdtInstall();
-uint16_t GdtSetGate(uint32_t num,uint32_t base,uint32_t limit,uint8_t access,uint8_t gran);
+void gdt_install();
+/*
 void write_tss(uint32_t num, uint16_t ss0, uint32_t esp0);
 void tss_flush();
 void set_kernel_stack(uint32_t stack);
-
+*/
 #endif
 

@@ -1,3 +1,5 @@
+;This has the entry point and manages the migration from 32-bit to 64-bit
+
 [BITS 32]
 [SECTION .boot]
 [GLOBAL __32bitentry]
@@ -87,8 +89,8 @@ Gdt2Ready:
     mov rax, Gdtr3
     lgdt [rax]
 
-    mov rax, main
-    call rax
+    ;mov rax, main
+    call main
     cli
     jmp $
 
@@ -106,6 +108,7 @@ TmpGdt:
     DQ      0x0000000000000000
     DQ      0x00CF9A000000FFFF
     DQ      0x00CF92000000FFFF
+TmpGdt2
     DQ      0x0000000000000000
     DQ      0x00A09A0000000000
     DQ      0x00A0920000000000
@@ -116,10 +119,10 @@ Gdtr1:
 
 Gdtr2:
     DW      23
-    DD      TmpGdt + 24
+    DD      TmpGdt2
     DD      0
 
 Gdtr3:
     DW      23
-    DQ      TmpGdt + 24 + 0xFFFFFFFF80000000
+    DQ      TmpGdt2 + 0xFFFFFFFF80000000
 
